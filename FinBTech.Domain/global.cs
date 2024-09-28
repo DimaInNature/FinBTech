@@ -1,0 +1,1 @@
+﻿global using FinBTech.Domain.Models.Data;
