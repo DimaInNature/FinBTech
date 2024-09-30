@@ -1,4 +1,4 @@
-﻿namespace FinBTech.Application.Contracts.Logging;
+﻿namespace FinBTech.Application.Logging;
 
 public interface IRequestResponseLogger
 {

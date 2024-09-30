@@ -2,9 +2,9 @@
 global using FinBTech.Api.DTOs.Requests.Data;
 global using FinBTech.Api.DTOs.Responses.Data;
 global using FinBTech.Api.Middlewares;
-global using FinBTech.Application.Contracts.Logging;
-global using FinBTech.Application.Contracts.Services;
-global using FinBTech.Application.Filters.Data;
+global using FinBTech.Application.Logging;
+global using FinBTech.Domain.Contracts.Services;
+global using FinBTech.Domain.Filters.Data;
 global using FinBTech.Domain.Models.Data;
 global using FinBTech.Infrastructure.DependencyInjection;
 global using FinBTech.Infrastructure.Logging;

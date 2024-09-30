@@ -1,4 +1,4 @@
-﻿namespace FinBTech.Application.Contracts.Services;
+﻿namespace FinBTech.Domain.Contracts.Services;
 
 public interface IDataService
 {

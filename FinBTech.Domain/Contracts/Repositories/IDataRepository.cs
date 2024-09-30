@@ -1,4 +1,4 @@
-﻿namespace FinBTech.Application.Contracts.Repositories;
+﻿namespace FinBTech.Domain.Contracts.Repositories;
 
 public interface IDataRepository
 {

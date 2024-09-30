@@ -1,4 +1,4 @@
-﻿namespace FinBTech.Application.Filters.Data;
+﻿namespace FinBTech.Domain.Filters.Data;
 
 public class DataFilter(int? id, int? code, string? value)
 {
