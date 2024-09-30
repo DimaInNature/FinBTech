@@ -1,8 +1,18 @@
 var builder = WebApplication.CreateBuilder(args);
+var services = builder.Services;
 
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+services.AddControllers();
+services.AddEndpointsApiExplorer();
+services.AddSwaggerGen();
+
+services.AddRequestResponseLogging();
+
+services.AddApplicationContext()
+    .AddRepositories();
+
+services.AddServices();
+
+services.AddApiVersioningConfiguration();
 
 var app = builder.Build();
 
@@ -14,8 +24,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-app.UseAuthorization();
-
 app.MapControllers();
+
+app.UseRequestResponseLogging();
 
 app.Run();
