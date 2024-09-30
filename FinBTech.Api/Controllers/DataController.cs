@@ -1,5 +1,9 @@
 ﻿namespace FinBTech.Api.Controllers;
 
+[ApiController]
+[ApiVersion("1")]
+[Route("api/v{version:apiVersion}/[controller]")]
+[Produces("application/json")]
 public sealed class DataController : ControllerBase
 {
     private readonly IDataService _dataService;
@@ -9,19 +13,53 @@ public sealed class DataController : ControllerBase
         _dataService = dataService;
     }
 
-    [HttpPost("save")]
-    public async Task<IActionResult> SaveData([FromBody] IEnumerable<DataEntry> data)
+    /// <summary>
+    /// Get <see cref="DataEntry"/> by filter.
+    /// </summary>
+    /// <param name="request">Filter.</param>
+    /// <returns>List of data.</returns>
+    [HttpGet]
+    [SwaggerResponse(StatusCodes.Status200OK, type: typeof(GetDataByFilterResponse))]
+    [SwaggerResponse(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<GetDataByFilterResponse>> GetByFilter([FromQuery] GetDataByFilterRequest? request)
     {
-        await _dataService.SaveDataAsync(data);
+        var filter = request.Adapt<DataFilter>();
 
-        return Ok();
+        var data = await _dataService.GetAsync(filter, request.Count);
+
+        if(data is null)
+        {
+            return NotFound();
+        }
+
+        var response = new GetDataByFilterResponse()
+        {
+            Entries = data
+        };
+
+        return Ok(response);
     }
 
-    [HttpGet("get")]
-    public async Task<ActionResult<IEnumerable<DataEntry>>> GetDataByCode([FromQuery] int? codeFilter)
+    /// <summary>
+    /// Save a list of data.
+    /// </summary>
+    /// <remarks>
+    /// Before saving the data list, the existing data is deleted.
+    /// </remarks>
+    /// <param name="request">List of data.</param>
+    /// <returns>Operation result.</returns>
+    [SwaggerResponse(StatusCodes.Status201Created)]
+    [SwaggerResponse(StatusCodes.Status400BadRequest)]
+    [HttpPost("Save")]
+    public async Task<IActionResult> Save([FromBody] SaveDataRequest request)
     {
-        var data = await _dataService.GetAsync(codeFilter);
+        if (!request.Entries?.Any() ?? true)
+        {
+            return BadRequest("Empty collection cannot be saved.");
+        }
 
-        return Ok(data);
+        await _dataService.SaveDataAsync(request.Entries!);
+
+        return Ok();
     }
 }

@@ -1,6 +1,16 @@
-﻿global using FinBTech.Domain.Contracts.Repositories;
+﻿global using FinBTech.Application.Contracts.Logging;
+global using FinBTech.Application.Contracts.Repositories;
+global using FinBTech.Application.Contracts.Services;
+global using FinBTech.Application.Filters.Data;
+global using FinBTech.Application.Services;
 global using FinBTech.Domain.Entities;
 global using FinBTech.Domain.Models.Data;
+global using FinBTech.Infrastructure.Context;
+global using FinBTech.Infrastructure.Context.Configuration;
+global using FinBTech.Infrastructure.Logging.Entities;
 global using FinBTech.Infrastructure.Repositories;
+global using Mapster;
 global using Microsoft.EntityFrameworkCore;
+global using Microsoft.EntityFrameworkCore.Metadata.Builders;
+global using Microsoft.Extensions.Configuration;
 global using Microsoft.Extensions.DependencyInjection;

@@ -1,12 +1,12 @@
 ﻿namespace FinBTech.Infrastructure.Context;
 
-public sealed class ApplicationContext : DbContext
+public class LoggingContext : DbContext
 {
     private readonly IConfiguration _configuration;
 
-    public DbSet<DataEntity> Data { get; set; }
+    public DbSet<LogEntity> Logs { get; set; }
 
-    public ApplicationContext(IConfiguration configuration)
+    public LoggingContext(IConfiguration configuration)
     {
         _configuration = configuration;
     }
@@ -18,7 +18,7 @@ public sealed class ApplicationContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.ApplyConfiguration(new DataEntityConfiguration());
+        modelBuilder.ApplyConfiguration(new LogEntityConfiguration());
 
         base.OnModelCreating(modelBuilder);
     }
