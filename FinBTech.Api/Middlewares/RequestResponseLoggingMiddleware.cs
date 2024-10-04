@@ -5,9 +5,7 @@ public sealed class RequestResponseLoggingMiddleware
     private readonly RequestDelegate _next;
     private readonly IRequestResponseLogger _logger;
 
-    public RequestResponseLoggingMiddleware(
-        RequestDelegate next,
-        IRequestResponseLogger logger)
+    public RequestResponseLoggingMiddleware(RequestDelegate next, IRequestResponseLogger logger)
     {
         _next = next;
         _logger = logger;
@@ -15,17 +13,19 @@ public sealed class RequestResponseLoggingMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        var request = await FormatRequest(context.Request);
-
         var originalBodyStream = context.Response.Body;
-        using var responseBody = new MemoryStream();
+
+        await using var responseBody = new MemoryStream();
         context.Response.Body = responseBody;
+
+        var requestBody = await FormatRequest(context.Request);
 
         await _next(context);
 
-        var response = await FormatResponse(context.Response);
+        var responseBodyText = await FormatResponse(context.Response);
 
-        await _logger.LogAsync(context.Request.Path + context.Request.QueryString, request, response);
+        _logger.LogAsync(context.Request.Path + context.Request.QueryString, requestBody, responseBodyText);
+
         await responseBody.CopyToAsync(originalBodyStream);
     }
 
@@ -43,9 +43,9 @@ public sealed class RequestResponseLoggingMiddleware
     private async Task<string?> FormatResponse(HttpResponse response)
     {
         response.Body.Seek(0, SeekOrigin.Begin);
-        var text = await new StreamReader(response.Body).ReadToEndAsync();
+        var responseBodyText = await new StreamReader(response.Body).ReadToEndAsync();
         response.Body.Seek(0, SeekOrigin.Begin);
 
-        return text;
+        return responseBodyText;
     }
 }

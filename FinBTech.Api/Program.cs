@@ -7,6 +7,8 @@ services.AddSwaggerGen();
 
 services.AddRequestResponseLogging();
 
+services.AddMappingConfiguration();
+
 services.AddApplicationContext()
     .AddRepositories();
 
@@ -21,8 +23,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
 
 app.MapControllers();
 

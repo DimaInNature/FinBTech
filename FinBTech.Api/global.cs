@@ -1,4 +1,5 @@
 ﻿global using FinBTech.Api.Configuration;
+global using FinBTech.Api.DTOs.Mapping;
 global using FinBTech.Api.DTOs.Requests.Data;
 global using FinBTech.Api.DTOs.Responses.Data;
 global using FinBTech.Api.Middlewares;

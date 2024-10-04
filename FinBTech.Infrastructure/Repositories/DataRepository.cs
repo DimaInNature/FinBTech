@@ -9,9 +9,9 @@ public class DataRepository : IDataRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<DataEntity>> GetAsync(DataFilter? filter, int count, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataEntry>> GetAsync(DataFilter? filter, CancellationToken cancellationToken = default)
     {
-        if(count < 1)
+        if(filter?.Limit < 1)
         {
             return [];
         }
@@ -22,7 +22,11 @@ public class DataRepository : IDataRepository
 
         if(filter is null)
         {
-            return [.. query.Take(count)];
+            var queryResult = await query.Skip(filter.Offset).Take(filter.Limit).ToListAsync();
+
+            var result = queryResult.Adapt<IEnumerable<DataEntry>>();
+
+            return result;
         }
 
         if (filter.Id.HasValue)
@@ -40,17 +44,23 @@ public class DataRepository : IDataRepository
             query = query.Where(entity => entity.Value == filter.Value);
         }
 
-        query = query.Take(count);
+        query = query.Skip(filter.Offset).Take(filter.Limit);
 
-        return await query.ToListAsync(cancellationToken);
+        var entities = await query.ToListAsync(cancellationToken);
+
+        var data = entities.Adapt<IEnumerable<DataEntry>>();
+
+        return data;
     }
 
-    public async Task SaveAsync(IEnumerable<DataEntity> entities, CancellationToken cancellationToken = default)
+    public async Task SaveAsync(IEnumerable<DataEntry> data, CancellationToken cancellationToken = default)
     {
-        if (!entities.Any())
+        if (!data.Any())
         {
             return;
         }
+
+        var entities = data.Adapt<IEnumerable<DataEntity>>();
 
         await _context.AddRangeAsync(entities, cancellationToken);
 
@@ -59,6 +69,6 @@ public class DataRepository : IDataRepository
 
     public async Task ClearAsync(CancellationToken cancellationToken = default)
     {
-        await _context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE [Data]", cancellationToken);
+        await _context.Data.ExecuteDeleteAsync(cancellationToken);
     }
 }

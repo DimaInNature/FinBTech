@@ -2,9 +2,13 @@
 
 public class GetDataByFilterRequest
 {
-    public int? Id { get; set; }
-    public int? Code { get; set; }
-    public string? Value { get; set; }
+    [FromQuery(Name = "id")] public int? Id { get; set; }
 
-    public int Count { get; set; } = 1;
+    [FromQuery(Name = "code")] public int? Code { get; set; }
+
+    [FromQuery(Name = "value")] public string? Value { get; set; }
+
+    [FromQuery(Name = "offset")] public int? Offset { get; set; }
+
+    [FromQuery(Name = "limit")] public int Limit { get; set; } = 1;
 }

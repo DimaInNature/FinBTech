@@ -25,7 +25,7 @@ public sealed class DataController : ControllerBase
     {
         var filter = request.Adapt<DataFilter>();
 
-        var data = await _dataService.GetAsync(filter, request.Count);
+        var data = await _dataService.GetAsync(filter);
 
         if(data is null)
         {
