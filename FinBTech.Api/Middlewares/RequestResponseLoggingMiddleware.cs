@@ -5,7 +5,11 @@ public sealed class RequestResponseLoggingMiddleware
     private readonly RequestDelegate _next;
     private readonly IRequestResponseLogger _logger;
 
-    public RequestResponseLoggingMiddleware(RequestDelegate next, IRequestResponseLogger logger)
+    private const int MaxBodySizeToRead = 1024 * 4; // 4 KB
+
+    public RequestResponseLoggingMiddleware(
+        RequestDelegate next, 
+        IRequestResponseLogger logger)
     {
         _next = next;
         _logger = logger;
@@ -13,39 +17,48 @@ public sealed class RequestResponseLoggingMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        var originalBodyStream = context.Response.Body;
+        var originalRequestBody = context.Request.Body;
+        using var requestBodyStream = new MemoryStream();
+        await context.Request.Body.CopyToAsync(requestBodyStream);
+        context.Request.Body = requestBodyStream;
+        requestBodyStream.Seek(0, SeekOrigin.Begin);
 
-        await using var responseBody = new MemoryStream();
-        context.Response.Body = responseBody;
+        string requestBodyText = await ReadStreamAsync(requestBodyStream);
 
-        var requestBody = await FormatRequest(context.Request);
+        requestBodyStream.Seek(0, SeekOrigin.Begin);
+        context.Request.Body = requestBodyStream;
+
+        var originalResponseBody = context.Response.Body;
+        using var responseBodyStream = new MemoryStream();
+        context.Response.Body = responseBodyStream;
 
         await _next(context);
 
-        var responseBodyText = await FormatResponse(context.Response);
+        responseBodyStream.Seek(0, SeekOrigin.Begin);
+        string responseBodyText = await ReadStreamAsync(responseBodyStream);
 
-        _logger.LogAsync(context.Request.Path + context.Request.QueryString, requestBody, responseBodyText);
+        responseBodyStream.Seek(0, SeekOrigin.Begin);
+        await responseBodyStream.CopyToAsync(originalResponseBody);
 
-        await responseBody.CopyToAsync(originalBodyStream);
+        _ = _logger.LogAsync($"{context.Request.Path}{context.Request.QueryString}", requestBodyText, responseBodyText);
     }
 
-    private async Task<string?> FormatRequest(HttpRequest request)
+    private async Task<string> ReadStreamAsync(Stream stream)
     {
-        request.EnableBuffering();
+        stream.Seek(0, SeekOrigin.Begin);
+        using var reader = new StreamReader(stream, leaveOpen: true);
 
-        using var reader = new StreamReader(request.Body, leaveOpen: true);
-        var body = await reader.ReadToEndAsync();
-        request.Body.Position = 0;
+        var buffer = new char[MaxBodySizeToRead];
+        var readLength = await reader.ReadBlockAsync(buffer, 0, MaxBodySizeToRead);
 
-        return body;
-    }
+        var result = new string(buffer, 0, readLength);
 
-    private async Task<string?> FormatResponse(HttpResponse response)
-    {
-        response.Body.Seek(0, SeekOrigin.Begin);
-        var responseBodyText = await new StreamReader(response.Body).ReadToEndAsync();
-        response.Body.Seek(0, SeekOrigin.Begin);
+        if (stream.Length > MaxBodySizeToRead)
+        {
+            result += "...[truncated]";
+        }
 
-        return responseBodyText;
+        stream.Seek(0, SeekOrigin.Begin);
+        return result;
     }
 }

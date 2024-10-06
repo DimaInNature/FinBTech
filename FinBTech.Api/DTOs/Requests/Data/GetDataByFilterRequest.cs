@@ -10,5 +10,7 @@ public class GetDataByFilterRequest
 
     [FromQuery(Name = "offset")] public int? Offset { get; set; }
 
-    [FromQuery(Name = "limit")] public int Limit { get; set; } = 1;
+    [FromQuery(Name = "limit")] 
+    [Required(ErrorMessage = "Limit is required.")] 
+    public int Limit { get; set; }
 }

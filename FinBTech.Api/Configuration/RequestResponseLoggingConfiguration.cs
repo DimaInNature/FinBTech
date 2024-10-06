@@ -11,6 +11,6 @@ internal static class RequestResponseLoggingConfiguration
 
     public static IApplicationBuilder UseRequestResponseLogging(this IApplicationBuilder app)
     {
-        return app.UseMiddleware<RequestResponseLoggingMiddleware>();
+        return app.UseMiddlewareForFeature<RequestResponseLoggingMiddleware>("RequestResponseLoggingFeature");
     }
 }

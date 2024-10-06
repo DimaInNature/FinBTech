@@ -11,7 +11,7 @@ public sealed class DataService : IDataService
 
     public async Task<IEnumerable<DataEntry>> GetAsync(DataFilter? filter, CancellationToken cancellationToken = default)
     {
-        if(filter?.Limit == 0)
+        if(filter?.Limit < 1)
         {
             return [];
         }

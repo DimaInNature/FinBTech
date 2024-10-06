@@ -2,6 +2,7 @@
 global using FinBTech.Api.DTOs.Mapping;
 global using FinBTech.Api.DTOs.Requests.Data;
 global using FinBTech.Api.DTOs.Responses.Data;
+global using FinBTech.Api.Filters;
 global using FinBTech.Api.Middlewares;
 global using FinBTech.Application.Logging;
 global using FinBTech.Domain.Contracts.Services;
@@ -11,4 +12,6 @@ global using FinBTech.Infrastructure.DependencyInjection;
 global using FinBTech.Infrastructure.Logging;
 global using Mapster;
 global using Microsoft.AspNetCore.Mvc;
+global using Microsoft.FeatureManagement;
 global using Swashbuckle.AspNetCore.Annotations;
+global using System.ComponentModel.DataAnnotations;
