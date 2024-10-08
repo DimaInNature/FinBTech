@@ -15,7 +15,7 @@ public class RequestResponseLoggingFilter : IFeatureFilter
         var allowedMethods = context.Parameters.GetRequiredSection("AllowedMethods").Get<string[]>();
 
         var httpContext = _httpContextAccessor.HttpContext!;
-        bool methodAllowed = allowedMethods != null && allowedMethods.Contains(httpContext.Request.Method);
+        bool methodAllowed = allowedMethods is not null && allowedMethods.Contains(httpContext.Request.Method);
 
         return Task.FromResult(methodAllowed);
     }

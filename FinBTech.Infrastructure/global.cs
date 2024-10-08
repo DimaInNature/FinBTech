@@ -1,4 +1,5 @@
-﻿global using FinBTech.Application.Logging;
+﻿global using EFCore.BulkExtensions;
+global using FinBTech.Application.Logging;
 global using FinBTech.Application.Services;
 global using FinBTech.Domain.Contracts.Repositories;
 global using FinBTech.Domain.Contracts.Services;
@@ -7,7 +8,6 @@ global using FinBTech.Domain.Filters.Data;
 global using FinBTech.Domain.Models.Data;
 global using FinBTech.Infrastructure.Context;
 global using FinBTech.Infrastructure.Context.Configuration;
-global using FinBTech.Infrastructure.Logging.Entities;
 global using FinBTech.Infrastructure.Repositories;
 global using Mapster;
 global using Microsoft.EntityFrameworkCore;

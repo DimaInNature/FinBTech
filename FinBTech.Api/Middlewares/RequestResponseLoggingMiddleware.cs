@@ -17,7 +17,6 @@ public sealed class RequestResponseLoggingMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        var originalRequestBody = context.Request.Body;
         using var requestBodyStream = new MemoryStream();
         await context.Request.Body.CopyToAsync(requestBodyStream);
         context.Request.Body = requestBodyStream;
@@ -45,20 +44,31 @@ public sealed class RequestResponseLoggingMiddleware
 
     private async Task<string> ReadStreamAsync(Stream stream)
     {
-        stream.Seek(0, SeekOrigin.Begin);
-        using var reader = new StreamReader(stream, leaveOpen: true);
+        if (stream.CanSeek)
+            stream.Seek(0, SeekOrigin.Begin);
+        
+        var buffer = ArrayPool<byte>.Shared.Rent(MaxBodySizeToRead);
 
-        var buffer = new char[MaxBodySizeToRead];
-        var readLength = await reader.ReadBlockAsync(buffer, 0, MaxBodySizeToRead);
-
-        var result = new string(buffer, 0, readLength);
-
-        if (stream.Length > MaxBodySizeToRead)
+        try
         {
-            result += "...[truncated]";
-        }
+            var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, MaxBodySizeToRead));
 
-        stream.Seek(0, SeekOrigin.Begin);
-        return result;
+            if (bytesRead is default(int))
+                return string.Empty;
+            
+            var result = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+            if (bytesRead is MaxBodySizeToRead)
+                result += "...[truncated]";
+            
+            return result;
+        }
+        finally
+        {
+            ArrayPool<byte>.Shared.Return(buffer);
+
+            if (stream.CanSeek)
+                stream.Seek(0, SeekOrigin.Begin);
+        }
     }
 }

@@ -1,16 +1,16 @@
 ﻿namespace FinBTech.Api.DTOs.Requests.Data;
 
-public class GetDataByFilterRequest
+public record GetDataByFilterRequest
 {
-    [FromQuery(Name = "id")] public int? Id { get; set; }
+    [FromQuery(Name = "id")] public int? Id { get; init; }
 
-    [FromQuery(Name = "code")] public int? Code { get; set; }
+    [FromQuery(Name = "code")] public int? Code { get; init; }
 
-    [FromQuery(Name = "value")] public string? Value { get; set; }
+    [FromQuery(Name = "value")] public string? Value { get; init; }
 
-    [FromQuery(Name = "offset")] public int? Offset { get; set; }
+    [FromQuery(Name = "offset")] public int? Offset { get; init; }
 
     [FromQuery(Name = "limit")] 
     [Required(ErrorMessage = "Limit is required.")] 
-    public int Limit { get; set; }
+    public int Limit { get; init; }
 }

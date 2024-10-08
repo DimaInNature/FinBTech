@@ -14,4 +14,6 @@ global using Mapster;
 global using Microsoft.AspNetCore.Mvc;
 global using Microsoft.FeatureManagement;
 global using Swashbuckle.AspNetCore.Annotations;
+global using System.Buffers;
 global using System.ComponentModel.DataAnnotations;
+global using System.Text;

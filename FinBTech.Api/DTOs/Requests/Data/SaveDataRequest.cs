@@ -1,8 +1,8 @@
 ﻿namespace FinBTech.Api.DTOs.Requests.Data;
 
-public class SaveDataRequest
+public record SaveDataRequest
 {
     [FromQuery(Name = "entries")]
     [Required(ErrorMessage = "Entries is required.")]
-    public IEnumerable<DataEntry>? Entries { get; set; }
+    public IEnumerable<DataEntry>? Entries { get; init; }
 }

@@ -1,4 +1,4 @@
-﻿namespace FinBTech.Infrastructure.Logging.Entities;
+﻿namespace FinBTech.Domain.Entities;
 
 public class LogEntity
 {
