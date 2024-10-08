@@ -9,33 +9,23 @@ public sealed class DataService : IDataService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<DataEntry>> GetAsync(DataFilter? filter, int count = 1, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataEntry>> GetAsync(DataFilter filter, CancellationToken cancellationToken = default)
     {
-        if(count == 0)
-        {
+        if(filter is { Limit: < 1 } or null)
             return [];
-        }
-
-        var entities = await _repository.GetAsync(filter, count, cancellationToken);
-
-        var entries = entities.Adapt<IEnumerable<DataEntry>>();
+        
+        var entries = await _repository.GetAsync(filter, cancellationToken);
 
         return entries;
     }
 
-    public async Task SaveDataAsync(IEnumerable<DataEntry> data, CancellationToken cancellationToken = default)
+    public async Task ReplaceAsync(IEnumerable<DataEntry> data, CancellationToken cancellationToken = default)
     {
-        if(!data.Any())
-        {
+        if(data.Any() is false)
             return;
-        }
+        
+        data = data.OrderBy(entry => entry.Code);
 
-        await _repository.ClearAsync(cancellationToken);
-
-        var entries = data.OrderBy(entry => entry.Code);
-
-        var entities = entries.Adapt<IEnumerable<DataEntity>>();
-
-        await _repository.SaveAsync(entities, cancellationToken);
+        await _repository.ReplaceAsync(data, cancellationToken);
     }
 }

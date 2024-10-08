@@ -3,9 +3,17 @@ var services = builder.Services;
 
 services.AddControllers();
 services.AddEndpointsApiExplorer();
+
 services.AddSwaggerGen();
 
+services.AddHttpContextAccessor();
+
+services.AddFeatureManagement()
+    .AddFeatureFilter<RequestResponseLoggingFilter>();
+
 services.AddRequestResponseLogging();
+
+services.AddMappingConfiguration();
 
 services.AddApplicationContext()
     .AddRepositories();
@@ -21,8 +29,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-app.UseHttpsRedirection();
 
 app.MapControllers();
 

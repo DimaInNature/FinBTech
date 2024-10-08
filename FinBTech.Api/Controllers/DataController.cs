@@ -2,7 +2,7 @@
 
 [ApiController]
 [ApiVersion("1")]
-[Route("api/v{version:apiVersion}/[controller]")]
+[Route("api/v{version:apiVersion}/data")]
 [Produces("application/json")]
 public sealed class DataController : ControllerBase
 {
@@ -25,23 +25,18 @@ public sealed class DataController : ControllerBase
     {
         var filter = request.Adapt<DataFilter>();
 
-        var data = await _dataService.GetAsync(filter, request.Count);
+        var data = await _dataService.GetAsync(filter);
 
         if(data is null)
-        {
             return NotFound();
-        }
-
-        var response = new GetDataByFilterResponse()
-        {
-            Entries = data
-        };
+        
+        var response = new GetDataByFilterResponse(data);
 
         return Ok(response);
     }
 
     /// <summary>
-    /// Save a list of data.
+    /// Replace a list of data.
     /// </summary>
     /// <remarks>
     /// Before saving the data list, the existing data is deleted.
@@ -50,15 +45,13 @@ public sealed class DataController : ControllerBase
     /// <returns>Operation result.</returns>
     [SwaggerResponse(StatusCodes.Status201Created)]
     [SwaggerResponse(StatusCodes.Status400BadRequest)]
-    [HttpPost("Save")]
-    public async Task<IActionResult> Save([FromBody] SaveDataRequest request)
+    [HttpPost]
+    public async Task<IActionResult> Replace([FromBody] SaveDataRequest request)
     {
-        if (!request.Entries?.Any() ?? true)
-        {
+        if (request.Entries?.Any() is false)
             return BadRequest("Empty collection cannot be saved.");
-        }
-
-        await _dataService.SaveDataAsync(request.Entries!);
+        
+        await _dataService.ReplaceAsync(request.Entries!);
 
         return Ok();
     }

@@ -5,6 +5,8 @@ public sealed class RequestResponseLoggingMiddleware
     private readonly RequestDelegate _next;
     private readonly IRequestResponseLogger _logger;
 
+    private const int MaxBodySizeToRead = 1024 * 4; // 4 KB
+
     public RequestResponseLoggingMiddleware(
         RequestDelegate next,
         IRequestResponseLogger logger)
@@ -15,37 +17,58 @@ public sealed class RequestResponseLoggingMiddleware
 
     public async Task Invoke(HttpContext context)
     {
-        var request = await FormatRequest(context.Request);
+        using var requestBodyStream = new MemoryStream();
+        await context.Request.Body.CopyToAsync(requestBodyStream);
+        context.Request.Body = requestBodyStream;
+        requestBodyStream.Seek(0, SeekOrigin.Begin);
 
-        var originalBodyStream = context.Response.Body;
-        using var responseBody = new MemoryStream();
-        context.Response.Body = responseBody;
+        string requestBodyText = await ReadStreamAsync(requestBodyStream);
+
+        requestBodyStream.Seek(0, SeekOrigin.Begin);
+        context.Request.Body = requestBodyStream;
+
+        var originalResponseBody = context.Response.Body;
+        using var responseBodyStream = new MemoryStream();
+        context.Response.Body = responseBodyStream;
 
         await _next(context);
 
-        var response = await FormatResponse(context.Response);
+        responseBodyStream.Seek(0, SeekOrigin.Begin);
+        string responseBodyText = await ReadStreamAsync(responseBodyStream);
 
-        await _logger.LogAsync(context.Request.Path + context.Request.QueryString, request, response);
-        await responseBody.CopyToAsync(originalBodyStream);
+        responseBodyStream.Seek(0, SeekOrigin.Begin);
+        await responseBodyStream.CopyToAsync(originalResponseBody);
+
+        _ = _logger.LogAsync($"{context.Request.Path}{context.Request.QueryString}", requestBodyText, responseBodyText);
     }
 
-    private async Task<string?> FormatRequest(HttpRequest request)
+    private async Task<string> ReadStreamAsync(Stream stream)
     {
-        request.EnableBuffering();
+        if (stream.CanSeek)
+            stream.Seek(0, SeekOrigin.Begin);
+        
+        var buffer = ArrayPool<byte>.Shared.Rent(MaxBodySizeToRead);
 
-        using var reader = new StreamReader(request.Body, leaveOpen: true);
-        var body = await reader.ReadToEndAsync();
-        request.Body.Position = 0;
+        try
+    {
+            var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, MaxBodySizeToRead));
 
-        return body;
+            if (bytesRead is default(int))
+                return string.Empty;
+            
+            var result = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+
+            if (bytesRead is MaxBodySizeToRead)
+                result += "...[truncated]";
+
+            return result;
     }
-
-    private async Task<string?> FormatResponse(HttpResponse response)
+        finally
     {
-        response.Body.Seek(0, SeekOrigin.Begin);
-        var text = await new StreamReader(response.Body).ReadToEndAsync();
-        response.Body.Seek(0, SeekOrigin.Begin);
+            ArrayPool<byte>.Shared.Return(buffer);
 
-        return text;
+            if (stream.CanSeek)
+                stream.Seek(0, SeekOrigin.Begin);
+        }
     }
 }

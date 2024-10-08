@@ -9,21 +9,14 @@ public class DataRepository : IDataRepository
         _context = context;
     }
 
-    public async Task<IEnumerable<DataEntity>> GetAsync(DataFilter? filter, int count, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DataEntry>> GetAsync(DataFilter filter, CancellationToken cancellationToken = default)
     {
-        if(count < 1)
-        {
+        if(filter is { Limit: < 1} or null)
             return [];
-        }
-
+        
         var query = _context.Data
             .AsNoTracking()
             .AsQueryable();
-
-        if(filter is null)
-        {
-            return [.. query.Take(count)];
-        }
 
         if (filter.Id.HasValue)
         {
@@ -35,30 +28,44 @@ public class DataRepository : IDataRepository
             query = query.Where(entity => entity.Code == filter.Code.Value);
         }
 
-        if (!string.IsNullOrWhiteSpace(filter.Value))
+        if (string.IsNullOrWhiteSpace(filter.Value) is false)
         {
             query = query.Where(entity => entity.Value == filter.Value);
         }
 
-        query = query.Take(count);
+        query = query.Skip(filter.Offset).Take(filter.Limit);
 
-        return await query.ToListAsync(cancellationToken);
+        var entities = await query.ToListAsync(cancellationToken);
+
+        var data = entities.Adapt<IEnumerable<DataEntry>>();
+
+        return data;
     }
 
-    public async Task SaveAsync(IEnumerable<DataEntity> entities, CancellationToken cancellationToken = default)
+    public async Task ReplaceAsync(IEnumerable<DataEntry> data, CancellationToken cancellationToken = default)
     {
-        if (!entities.Any())
-        {
+        if (data.Any() is false)
             return;
+        
+        var entities = data.Adapt<IEnumerable<DataEntity>>();
+
+        using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+        try
+        {
+            await _context.Data.ExecuteDeleteAsync(cancellationToken);
+
+            await _context.BulkInsertAsync(entities, cancellationToken: cancellationToken);
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            await transaction.CommitAsync(cancellationToken);
         }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
 
-        await _context.AddRangeAsync(entities, cancellationToken);
-
-        await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    public async Task ClearAsync(CancellationToken cancellationToken = default)
-    {
-        await _context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE [Data]", cancellationToken);
+            throw;
+        }
     }
 }
