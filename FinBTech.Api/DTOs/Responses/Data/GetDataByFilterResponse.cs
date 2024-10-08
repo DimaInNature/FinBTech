@@ -2,5 +2,7 @@
 
 public record GetDataByFilterResponse
 {
-    public required IEnumerable<DataEntry> Entries { get; init; }
+    public IEnumerable<DataEntry> Entries { get; init; }
+
+    public GetDataByFilterResponse(IEnumerable<DataEntry> entries) => Entries = entries;
 }

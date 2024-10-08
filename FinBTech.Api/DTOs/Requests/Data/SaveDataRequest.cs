@@ -4,5 +4,5 @@ public record SaveDataRequest
 {
     [FromQuery(Name = "entries")]
     [Required(ErrorMessage = "Entries is required.")]
-    public IEnumerable<DataEntry>? Entries { get; init; }
+    public required IEnumerable<DataEntry> Entries { get; init; }
 }

@@ -28,14 +28,9 @@ public sealed class DataController : ControllerBase
         var data = await _dataService.GetAsync(filter);
 
         if(data is null)
-        {
             return NotFound();
-        }
-
-        var response = new GetDataByFilterResponse()
-        {
-            Entries = data
-        };
+        
+        var response = new GetDataByFilterResponse(data);
 
         return Ok(response);
     }
@@ -54,10 +49,8 @@ public sealed class DataController : ControllerBase
     public async Task<IActionResult> Replace([FromBody] SaveDataRequest request)
     {
         if (request.Entries?.Any() is false)
-        {
             return BadRequest("Empty collection cannot be saved.");
-        }
-
+        
         await _dataService.ReplaceAsync(request.Entries!);
 
         return Ok();
