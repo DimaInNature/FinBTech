@@ -8,7 +8,7 @@ public sealed class RequestResponseLoggingMiddleware
     private const int MaxBodySizeToRead = 1024 * 4; // 4 KB
 
     public RequestResponseLoggingMiddleware(
-        RequestDelegate next, 
+        RequestDelegate next,
         IRequestResponseLogger logger)
     {
         _next = next;
@@ -50,7 +50,7 @@ public sealed class RequestResponseLoggingMiddleware
         var buffer = ArrayPool<byte>.Shared.Rent(MaxBodySizeToRead);
 
         try
-        {
+    {
             var bytesRead = await stream.ReadAsync(buffer.AsMemory(0, MaxBodySizeToRead));
 
             if (bytesRead is default(int))
@@ -60,11 +60,11 @@ public sealed class RequestResponseLoggingMiddleware
 
             if (bytesRead is MaxBodySizeToRead)
                 result += "...[truncated]";
-            
+
             return result;
-        }
+    }
         finally
-        {
+    {
             ArrayPool<byte>.Shared.Return(buffer);
 
             if (stream.CanSeek)

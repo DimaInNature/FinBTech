@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\FinBTech.Application\FinBTech.Application.csproj" />
     <ProjectReference Include="..\FinBTech.Domain\FinBTech.Domain.csproj" />
     <ProjectReference Include="..\FinBTech.Infrastructure\FinBTech.Infrastructure.csproj" />
   </ItemGroup>
