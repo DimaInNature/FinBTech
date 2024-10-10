@@ -6,7 +6,7 @@ public static class GetDataByFilterRequestMappingConfig
     {
         TypeAdapterConfig<GetDataByFilterRequest, DataFilter>
             .NewConfig()
-            .ConstructUsing(s => new DataFilter(s.Id, s.Code, s.Value))
+            .ConstructUsing(s => new DataFilter(s.Id, s.Code, s.Value, s.Offset, s.Limit))
             .Map(d => d.Offset, s => s.Offset)
             .Map(d => d.Limit, s => s.Limit);
     }

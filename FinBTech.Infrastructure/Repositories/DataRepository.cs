@@ -11,9 +11,6 @@ public class DataRepository : IDataRepository
 
     public async Task<IEnumerable<DataEntry>> GetAsync(DataFilter filter, CancellationToken cancellationToken = default)
     {
-        if(filter is { Limit: < 1} or null)
-            return [];
-        
         var query = _context.Data
             .AsNoTracking()
             .AsQueryable();
@@ -33,7 +30,7 @@ public class DataRepository : IDataRepository
             query = query.Where(entity => entity.Value == filter.Value);
         }
 
-        query = query.Skip(filter.Offset).Take(filter.Limit);
+        query = query.Skip(filter.Offset ?? 0).Take(filter.Limit);
 
         var entities = await query.ToListAsync(cancellationToken);
 

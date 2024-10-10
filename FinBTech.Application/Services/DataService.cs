@@ -11,9 +11,6 @@ public sealed class DataService : IDataService
 
     public async Task<IEnumerable<DataEntry>> GetAsync(DataFilter filter, CancellationToken cancellationToken = default)
     {
-        if(filter is { Limit: < 1 } or null)
-            return [];
-        
         var entries = await _repository.GetAsync(filter, cancellationToken);
 
         return entries;
